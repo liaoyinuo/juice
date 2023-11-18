@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import time
+import subprocess
 
 
 
@@ -10,7 +11,7 @@ pwds = ['宅方社', 'zfshe.com', 'zfshegame',
         'yhsxsx10月',
         ]
 
-bmds = ['存档', '附件']
+bmds = ['存档', '附件', '补丁']
 
 if len(sys.argv)<=1:
     os.popen('msg %username% /TIME:3 "没有输入文件"')
@@ -29,10 +30,11 @@ stamp  = time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())
 sav_pt = os.path.join(dir_pt, stamp)
 os.mkdir(sav_pt)
 
-os.popen('msg %username% /TIME:1 "正在解压中, 请稍候..."')
+os.popen('msg %username% /TIME:7 "正在解压中, 时间可能较久，请稍候...\n之后解压完毕还会有一次提示, 在此之前请不要操作"')
 for pwd in pwds:
-    unzip_cmd = "7z.exe x %s -p%s -o%s -y"%(raw_pt, pwd, sav_pt)
-    r = os.system(unzip_cmd)
+    unzip_cmd = "7z.exe x %s -p%s -o%s -y > NUL"%(raw_pt, pwd, sav_pt)
+    r = subprocess.Popen(unzip_cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+    print(pwd, r)
     if not r:
         break
 
@@ -47,9 +49,9 @@ for i in os.listdir(sav_pt):
 
 
 if not r:
-    os.popen('msg %%username%% /TIME:3 "解压完毕, 输出于%s文件夹中"'%stamp)
+    os.popen('msg %%username%% /TIME:5 "解压完毕, 输出于%s文件夹中"'%stamp)
 else:
-    os.popen('msg %%username%% /TIME:3 "解压码错误，请查看下载页密码或者联系站长"')
+    os.popen('msg %%username%% /TIME:5 "解压码错误，请查看下载页密码或者联系站长"')
     os.rmdir(sav_pt)
 
 
