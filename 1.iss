@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "juice"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "zfshe"
 #define MyAppURL "https://www.zfsya.com/"
 
@@ -23,7 +23,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=E:\winloc\Desktop\juice
+OutputDir=E:\winloc\Desktop\inno
 OutputBaseFilename=mysetup
 Compression=lzma
 SolidCompression=yes
@@ -34,12 +34,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 
 [Files]
-Source: "E:\winloc\Desktop\juice\7z.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\winloc\Desktop\juice\juice.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\juice\7z.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\juice\juice.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [registry]
 ;本段处理程序在注册表中的键值
 Root:HKCR;Subkey:*\shell\juice;ValueType: string; ValueName:MUIVerb;ValueData:使用Juice进行解压;Flags: uninsdeletekey
 Root:HKCR;Subkey:*\shell\juice;ValueType: string; ValueName:Icon;ValueData:D:\juice\juice.exe ,0;Flags: uninsdeletekey
-Root:HKCR;Subkey:*\shell\juice\command;ValueType: string; ValueName:;ValueData:D:\juice\juice.exe %1;Flags: uninsdeletekey
+Root:HKCR;Subkey:*\shell\juice\command;ValueType: string; ValueName:;ValueData:"D:\juice\juice.exe ""%1""";Flags: uninsdeletekey

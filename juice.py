@@ -10,7 +10,7 @@ import customtkinter as ctk
 ctk.set_appearance_mode("light") 
 ctk.set_default_color_theme("blue")  
 
-
+root_pt = 'D:/juice/'
 pwds = ['宅方社', 'zfshe.com', 'zfshegame',
         '梅子糯米饭团', 'falesti.me',
         'yhsxsx10月',
@@ -41,9 +41,9 @@ class App(ctk.CTk):
         self.geometry("%dx%d+%d+%d" % (width, height, left, top))
 
     def del_files(self):
-        for i in os.listdir('.'):
+        for i in os.listdir(root_pt):
             if i[-3:]=='log':
-                os.remove(i)
+                os.remove(root_pt+i)
 
     def main_page(self):
 
@@ -88,8 +88,8 @@ class App(ctk.CTk):
 
         v = False
         for idx, pwd in enumerate(pwds):
-            log_name = "%s_%d.log"%(stamp, idx)
-            unzip_cmd = "7z.exe x %s -p%s -o%s -bsp1 -y >%s 2>&1"%(os.path.join(dir_pt, raw_pt), pwd, sav_pt, log_name)
+            log_name = root_pt + "%s_%d.log"%(stamp, idx)
+            unzip_cmd = root_pt + '7z.exe x "%s" -p%s -o%s -bsp1 -y >%s 2>&1'%(os.path.join(dir_pt, raw_pt), pwd, sav_pt, log_name)
             print(unzip_cmd)
 
 
@@ -100,7 +100,7 @@ class App(ctk.CTk):
                     f1 = open(log_name, 'r')
                     vv = True
                 except FileNotFoundError:
-                    time.sleep(0.5)
+                    time.sleep(0.2)
 
                 
             position = 0
@@ -152,7 +152,7 @@ class App(ctk.CTk):
                             v = True
                     os.rename(os.path.join(sav_pt, i), os.path.join(sav_pt, stamp)) if not v else None
 
-
+zz
 
 
 app = App(sys.argv)
