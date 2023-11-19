@@ -26,8 +26,9 @@ class App(ctk.CTk):
         self.resizable(False, False)
         self.grid_columnconfigure((0), weight=1)
         self.set_pos()
+        self.del_files()
         
-        self.zip_pt = argv[1] if len(argv)>1 else ''
+        self.ful_pt = argv[1] if len(argv)>1 else sys.exit(0)
         self.main_page()
 
     def set_pos(self):
@@ -39,6 +40,10 @@ class App(ctk.CTk):
         top = (screenHeight ) // 2
         self.geometry("%dx%d+%d+%d" % (width, height, left, top))
 
+    def del_files(self):
+        for i in os.listdir('.'):
+            if i[-3:]=='log':
+                os.remove(i)
 
     def main_page(self):
 
@@ -52,7 +57,7 @@ class App(ctk.CTk):
         self.proc = ctk.CTkLabel(self, text="0%")
         self.proc.grid(row=1, column=0, padx=20, sticky="e",columnspan=1)
 
-        self.restart = ctk.CTkButton(self, text="请稍候...", command=self.func, fg_color="grey", state="disabled")
+        self.restart = ctk.CTkButton(self, text="请稍候...", command=lambda:app.destroy(), fg_color="grey", state="disabled")
         self.restart.grid(row=2, column=0, padx=20, pady=0, sticky="ew", columnspan=2)
 
         begin_dl = threading.Thread(target=self.unzip_proc)
@@ -61,13 +66,20 @@ class App(ctk.CTk):
 
 
     def unzip_proc(self):
-        zip_pt = self.zip_pt
-        dir_pt = os.path.dirname(zip_pt)
-        raw_pt = os.path.basename(zip_pt).split('_')[-1]
-        bas_pt = raw_pt.split('.')[0]
-        for i in os.listdir(dir_pt):
-            if bas_pt in i:
-                os.rename(os.path.join(dir_pt, i), os.path.join(dir_pt, i.split('_')[-1]))
+        ful_pt = self.ful_pt
+        dir_pt = os.path.dirname(ful_pt)
+        raw_pt = os.path.basename(ful_pt).split('_')[-1]
+        bas_pt = raw_pt.split('.')
+
+        if len(bas_pt)>=3:
+            for i in os.listdir(dir_pt):
+                if bas_pt[0] in i:
+                    j = i.split('_')[-1]
+                    os.rename(os.path.join(dir_pt, i), os.path.join(dir_pt, j))
+                    if 'part1' in j:
+                        raw_pt = j
+                    elif '001' in j:
+                        raw_pt = j
 
 
         stamp  = time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())
@@ -75,26 +87,50 @@ class App(ctk.CTk):
         os.mkdir(sav_pt)
 
         v = False
-        for pwd in pwds:
-            unzip_cmd = "7z.exe x %s -p%s -o%s -bsp1 -y"%(os.path.join(dir_pt, raw_pt), pwd, sav_pt)
+        for idx, pwd in enumerate(pwds):
+            log_name = "%s_%d.log"%(stamp, idx)
+            unzip_cmd = "7z.exe x %s -p%s -o%s -bsp1 -y >%s 2>&1"%(os.path.join(dir_pt, raw_pt), pwd, sav_pt, log_name)
             print(unzip_cmd)
-            proc = subprocess.Popen(unzip_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-            for line in iter(proc.stdout.readline, 'b'):
-                line = line.strip().decode('gbk', 'ignore')
-                if not subprocess.Popen.poll(proc) is None:
-                    if line == "":
-                        break
-                if "ERROR: Wrong password" in line:
-                    v=False
-                    break
-                ret  = re.search("(\d+)\%", line)
-                if ret:
-                    v=True
-                    self.bar.set(float(ret[1])/100)
-                    self.proc.configure(text="%s%%"%ret[1])
 
+
+            subprocess.Popen(unzip_cmd, shell=True)
+            vv = False
+            while not vv:
+                try:
+                    f1 = open(log_name, 'r')
+                    vv = True
+                except FileNotFoundError:
+                    time.sleep(0.5)
+
+                
+            position = 0
+            while not v:
+                line = f1.readline().strip()
+                if line:
+                    if "ERROR" in line:
+                        v=False
+                        break
+                    elif "Everything is Ok" in line:
+                        v=True
+                        break
+                    ret  = re.search("(\d+)\%", line)
+                    if ret:
+                        self.bar.set(float(ret[1])/100)
+                        self.proc.configure(text="%s%%"%ret[1])
+
+
+                cur_position = f1.tell()
+                if cur_position == position:
+                    time.sleep(0.2)
+                    continue
+                else:
+                    position = cur_position
+
+                
             if v:
                 break            
+            
+
 
         self.bar.set(1)
         if not v:
@@ -117,66 +153,7 @@ class App(ctk.CTk):
                     os.rename(os.path.join(sav_pt, i), os.path.join(sav_pt, stamp)) if not v else None
 
 
-        
 
-
-    def func(self):
-        app.destroy()
-
-
-
-
-
-
-
-
-
-'''
-if len(sys.argv)<=1:
-    os.popen('msg %username% /TIME:3 "没有输入文件"')
-    raise SystemExit()
-
-zip_pt = sys.argv[1]
-dir_pt = os.path.dirname(zip_pt)
-raw_pt = os.path.basename(zip_pt).split('_')[-1]
-bas_pt = raw_pt.split('.')[0]
-for i in os.listdir(dir_pt):
-    if bas_pt in i:
-        os.rename(os.path.join(dir_pt, i), os.path.join(dir_pt, i.split('_')[-1]))
-
-
-stamp  = time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())
-sav_pt = os.path.join(dir_pt, stamp)
-os.mkdir(sav_pt)
-
-os.popen('msg %username% /TIME:7 "正在解压中, 时间可能较久，请稍候...\n之后解压完毕还会有一次提示, 在此之前请不要操作"')
-for pwd in pwds:
-    unzip_cmd = "7zz.exe x %s -p%s -o%s -y"%(raw_pt, pwd, sav_pt)
-    r = subprocess.Popen(unzip_cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
-    while r.poll() is None:
-        line = r.stdout.readline().strip().decode('gbk', 'ignore')
-        print(line)
-    print(pwd, r)
-    if not r:
-        break
-
-v = False
-for i in os.listdir(sav_pt):
-    if re.search(r"[\u4e00-\u9fa5]+", i):
-        for bmd in bmds:
-            if bmd in i:
-                v = True
-        os.rename(os.path.join(sav_pt, i), os.path.join(sav_pt, stamp)) if not v else None
-        
-
-
-if not r:
-    os.popen('msg %%username%% /TIME:5 "解压完毕, 输出于%s文件夹中"'%stamp)
-else:
-    os.popen('msg %%username%% /TIME:5 "解压码错误，请查看下载页密码或者联系站长"')
-    os.rmdir(sav_pt)
-
-'''
 
 app = App(sys.argv)
 app.mainloop()
